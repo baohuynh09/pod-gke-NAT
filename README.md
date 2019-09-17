@@ -22,3 +22,4 @@ iptables -A POSTROUTING -d 10.60.0.0/16 -m comment --    comment "NAT-VPN: SNAT 
 
 
 Reference: https://blog.mrtrustor.net/post/iptables-kubernetes/
+
