@@ -1,0 +1,31 @@
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  name: fix-pod-gke-nat
+  labels:
+    app: fix-pod-gke-nat
+spec:
+  template:
+    metadata:
+      labels:
+        app: fix-pod-gke-nat
+    spec:
+      hostPID: true
+      containers:
+        - name: fix-pod-gke-nat
+          image: gcr.io/google-containers/startup-script:v1
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          env:
+          - name: STARTUP_SCRIPT
+            value: |
+              #! /bin/bash
+              while true; do
+                iptables-save | grep MASQUERADE | grep -q "NAT-VPN"
+                if [ $? -ne 0 ]; then
+                  echo "Missing NAT rule for VPN, adding it"
+                  iptables -A POSTROUTING -d 10.60.0.0/16 -m comment --comment "NAT-VPN: SNAT for outbound traffic through VPN" -m addrtype ! --dst-type LOCAL -j MASQUERADE -t nat
+                fi
+                sleep 60
+              done
